@@ -1,0 +1,17 @@
+{
+  "name": "cgv-booking-mvc",
+  "version": "1.0.0",
+  "description": "Cinema Manager with MVC Architecture",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "express-session": "^1.18.0",
+    "mysql2": "^3.16.0",
+    "qrcode": "^1.5.3"
+  }
+}

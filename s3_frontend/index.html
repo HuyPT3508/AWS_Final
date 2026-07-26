@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>HCMUT Cinema - Đỉnh Cao UI/UX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+    <!-- NÚT ĐIỀU KHIỂN DEMO -->
+    <div class="demo-controls">
+        <b class="d-block mb-3 text-center border-bottom pb-2" style="color:var(--brand-color);">ĐIỀU KHIỂN DEMO</b>
+        
+        <small class="text-muted d-block mb-1 fw-bold" style="font-size:10px;">— CHUNG —</small>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('landing')">1. Chọn Role</button>
+
+        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— KHÁCH HÀNG —</small>
+        <button class="btn btn-outline-info btn-sm fw-bold" onclick="countdownSeconds = 3" title="Tua nhanh đếm ngược xuống còn 3 giây"><i class="fas fa-forward me-1"></i>Tua nhanh thời gian</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('auth')">2. Đăng nhập</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('register')">2.1. Đăng ký + OTP</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('home')">3. Trang chủ Phim</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoShowMovieDetail()">3.1. Popup Chi tiết Phim</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('booking')">4. Đặt Ghế (Cinema 01)</button>
+        <button class="btn btn-outline-danger btn-sm" onclick="demoShowSeatLock()">4★. Demo Khóa Ghế RT</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(3)">4a. Phòng 03 — Premium</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(5)">4b. Phòng 05 — 3D</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(7)">4c. IMAX Hall 1</button>
+        <button class="btn btn-outline-warning btn-sm" onclick="demoShowPayment()">4.1. Modal Thanh Toán</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoShowQR()">4.2. Vé QR Code</button>
+
+        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— ADMIN —</small>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowDashboard()">5. Dashboard + Charts</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('lichchieu', 1)">5.1. Quản lý Lịch chiếu</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowAddShowtime()">5.2. Modal Thêm Suất</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('phim', 2)">5.3. Quản lý Phim</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('tienich', 3)">5.4. Tiện ích Nhóm 3</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoCheckDiemShortcut()">5.4a. Tra cứu Điểm (kết quả)</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoCheckGheShortcut()">5.4b. Kiểm tra Ghế (kết quả)</button>
+    </div>
+
+    <!-- HEADER -->
+    <header class="cine-header">
+        <div class="header-inner">
+            <h1 class="brand-logo">HCMUT</h1>
+            <nav class="nav-links">
+                <a href="#" class="active" onclick="showView('home'); return false;">PHIM ĐANG CHIẾU</a>
+                <a href="#" onclick="showView('cinemas'); return false;">RẠP & GIÁ VÉ</a>
+            </nav>
+            <div id="header-user-status" style="color:white; font-size: 14px; cursor: pointer;" onclick="openGlobalLogin()">
+                <i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b>Đăng nhập / Đăng ký</b>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==============================================
+         0. LANDING & AUTH
+    =============================================== -->
+    <div id="landing" class="view-section">
+        <div class="landing-wrap">
+            <div class="landing-bg"></div>
+            <div class="landing-content">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Logo_Bach_Khoa.png" alt="HCMUT" height="80" style="margin-bottom: 20px; opacity: 0.9;">
+                <h2 class="mb-2" style="color:var(--brand-color); font-weight:900; font-size: 28px;">HCMUT CINEMA</h2>
+                <p class="text-muted mb-5" style="font-size: 16px;">Hệ thống Quản lý Đặt vé Xem phim — Đại học Bách Khoa TP.HCM</p>
+                <button class="role-btn" onclick="showView('home')">
+                    <div class="role-icon"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="text-start"><div style="font-size:20px;">KHÁCH HÀNG</div><small class="text-muted fw-normal">Xem phim, đặt vé, tích điểm</small></div>
+                </button>
+                <button class="role-btn" onclick="window.location.href='admin.html'">
+                    <div class="role-icon"><i class="fas fa-cog"></i></div>
+                    <div class="text-start"><div style="font-size:20px;">QUẢN TRỊ VIÊN</div><small class="text-muted fw-normal">Quản lý suất chiếu, thống kê</small></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth" class="view-section">
+        <div class="auth-wrap">
+            <h3 style="color:var(--brand-color); border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:20px;">Đăng Nhập</h3>
+            <div class="auth-form">
+                <select><option>Nguyễn Văn Khách</option></select>
+                <input type="password" value="123456">
+                <button class="btn-submit" onclick="showView('home')">ĐĂNG NHẬP</button>
+                <div class="text-center mt-3">
+                    <a href="#" onclick="showView('register'); return false;">Hoặc Tạo tài khoản mới</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="register" class="view-section">
+        <div class="auth-wrap">
+            <h3 style="color:var(--brand-color); border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:20px;">Đăng Ký Tài Khoản</h3>
+            <div class="auth-form" id="reg-form">
+                <input type="text" id="regName" placeholder="Họ và tên">
+                <input type="email" id="regEmail" placeholder="Email">
+                <input type="password" id="regPassword" placeholder="Mật khẩu">
+                <button class="btn-submit" onclick="sendRegisterOTP()" id="btnSendOTP">TIẾP TỤC</button>
+                <div class="text-center mt-3">
+                    <a href="#" onclick="showView('auth'); return false;">Quay lại đăng nhập</a>
+                </div>
+            </div>
+            <div class="auth-form" id="otp-form" style="display:none;">
+                <p class="text-muted text-center mb-4" id="otpMessage">Vui lòng nhập mã OTP gồm 6 chữ số vừa được gửi đến Email của bạn.</p>
+                <input type="text" id="regOtp" placeholder="Nhập mã OTP..." class="text-center fw-bold fs-4" maxlength="6">
+                <button class="btn-submit" onclick="verifyRegisterOTP()" id="btnVerifyOTP">XÁC NHẬN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         1. HOME (CAROUSEL & HOVER)
+    =============================================== -->
+    <div id="cinemas" class="view-section">
+        <div class="container py-5">
+            <h2 class="text-center fw-bold mb-5" style="color:var(--brand-color);">HỆ THỐNG RẠP & GIÁ VÉ</h2>
+            
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" style="transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <img src="https://image.tmdb.org/t/p/original/8Y43POKjjKDGI9MH89NW0NAzzp8.jpg" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold"><i class="fas fa-video me-2 text-primary"></i>IMAX Laser GT 1.43:1</h4>
+                            <p class="text-muted">Trải nghiệm điện ảnh đỉnh cao với màn hình khổng lồ cong siêu thực, độ phân giải 4K Laser kép siêu sáng và hệ thống âm thanh vòm 12.1 độc quyền. Tuyệt hảo cho các bom tấn hành động và viễn tưởng 3D.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" style="transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop" class="card-img-top" style="height: 250px; object-fit: cover;">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold"><i class="fas fa-film me-2 text-danger"></i>IMAX 15/70mm Film</h4>
+                            <p class="text-muted">Định dạng chiếu phim analog đỉnh cao nhất thế giới hiện nay. Hình ảnh cực kỳ sắc nét (tương đương 18K), tỉ lệ khung hình mở rộng tối đa, đem lại trải nghiệm nguyên bản nhất từ đạo diễn Christopher Nolan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="fw-bold mb-4 mt-5"><i class="fas fa-tags me-2 text-success"></i>Bảng Giá Vé Tham Khảo</h3>
+            <div class="table-responsive bg-white rounded-4 shadow-sm p-4">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start">Loại Rạp</th>
+                            <th>Ghế Thường</th>
+                            <th>Ghế VIP</th>
+                            <th>Ghế Sweetbox</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-start"><strong>Rạp Tiêu Chuẩn (2D)</strong></td>
+                            <td>90.000 VNĐ</td>
+                            <td>110.000 VNĐ</td>
+                            <td>150.000 VNĐ</td>
+                        </tr>
+                        <tr>
+                            <td class="text-start"><strong>Rạp Premium (3D)</strong></td>
+                            <td>120.000 VNĐ</td>
+                            <td>140.000 VNĐ</td>
+                            <td>180.000 VNĐ</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td class="text-start"><strong>IMAX Laser GT 1.43:1</strong></td>
+                            <td>150.000 VNĐ</td>
+                            <td>180.000 VNĐ</td>
+                            <td><em>Không áp dụng</em></td>
+                        </tr>
+                        <tr class="table-info">
+                            <td class="text-start"><strong>IMAX 15/70mm Film</strong></td>
+                            <td>180.000 VNĐ</td>
+                            <td>220.000 VNĐ</td>
+                            <td><em>Không áp dụng</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-warning mt-4 rounded-4 shadow-sm">
+                <i class="fas fa-info-circle me-2"></i><strong>Lưu ý:</strong> Bảng giá trên được trích xuất trực tiếp từ Cơ sở dữ liệu và có thể thay đổi tùy theo các chương trình khuyến mãi hiện hành. Học sinh, Sinh viên vui lòng xuất trình thẻ tại quầy để được giảm <strong>15.000 VNĐ/vé</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         1. HOME (CAROUSEL & HOVER)
+    =============================================== -->
+    <div id="home" class="view-section active">
+        <!-- AUTO CAROUSEL -->
+        <div class="hero-carousel">
+            <div class="slide active" style="background: url('https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg') center/cover;">
+                <div class="hero-content">
+                    <span class="badge bg-danger mb-3 px-3 py-2 fs-6">Đang chiếu rạp</span>
+                    <h1 class="text-white" style="font-size: 55px; font-weight: 900;">AVENGERS: ENDGAME</h1>
+                    <p style="color: #eee; max-width: 600px; font-size: 18px; line-height: 1.6; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Trận chiến sinh tử cuối cùng của các siêu anh hùng. Bạn đã sẵn sàng?</p>
+                    <button class="btn btn-primary btn-lg mt-3 fw-bold px-4 rounded-pill"><i class="fas fa-ticket-alt me-2"></i> MUA VÉ NGAY</button>
+                </div>
+            </div>
+            <div class="slide" style="background: url('https://image.tmdb.org/t/p/original/1g0dhYtq4irTY1Z1yewB62xL09j.jpg') center/cover;">
+                <div class="hero-content">
+                    <span class="badge bg-warning text-dark mb-3 px-3 py-2 fs-6">Độc quyền IMAX</span>
+                    <h1 class="text-white" style="font-size: 55px; font-weight: 900;">SPIDER-MAN</h1>
+                    <p style="color: #eee; max-width: 600px; font-size: 18px; line-height: 1.6; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Khám phá đa vũ trụ cùng Người Nhện trong hành trình không lối về.</p>
+                    <button class="btn btn-warning btn-lg mt-3 fw-bold px-4 rounded-pill"><i class="fas fa-ticket-alt me-2"></i> MUA VÉ NGAY</button>
+                </div>
+            </div>
+            <div class="slide" style="background: url('https://image.tmdb.org/t/p/original/dYjZ27huvABXF5UKtiOAmVssdf8.jpg') center/cover;">
+                <div class="hero-content">
+                    <h2 class="text-white mb-2" style="font-weight: 700;"><span class="badge bg-info text-dark me-2">Phim mới 2026</span></h2>
+                    <h1 class="text-white" style="font-size: 55px; font-weight: 900;">YOUR NAME</h1>
+                    <p class="text-white mt-3 mb-4 w-75" style="font-size: 18px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+                        Cuộc gặp gỡ định mệnh giữa hai con người ở hai không gian và thời gian khác nhau, mở ra một câu chuyện tình yêu kỳ diệu vượt không gian.
+                    </p>
+                    <button class="btn btn-info btn-lg mt-3 fw-bold px-4 rounded-pill text-dark"><i class="fas fa-ticket-alt me-2"></i> MUA VÉ NGAY</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container" style="max-width: 1100px;">
+            <h3 class="fw-bold mb-4" style="border-left: 5px solid var(--brand-color); padding-left: 15px;">Phim Đang Chiếu</h3>
+            <div class="row g-4 mb-5" id="movieGrid">
+                <!-- Movies generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         2. BOOKING (PROGRESS BAR & INTERACTIVE SEATS)
+    =============================================== -->
+    <div id="booking" class="view-section">
+        <div class="container pt-3">
+            <button class="btn btn-outline-secondary fw-bold" onclick="confirmCancelBooking()">
+                <i class="fas fa-arrow-left me-2"></i> Quay lại
+            </button>
+        </div>
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="step active"><div class="step-circle"><i class="fas fa-film"></i></div> Chọn Phim</div>
+            <div class="step active"><div class="step-circle"><i class="fas fa-chair"></i></div> Đặt Ghế</div>
+            <div class="step"><div class="step-circle">3</div> Thanh Toán</div>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-bar">
+            <i class="fas fa-clock fa-lg"></i>
+            <span class="fw-bold text-dark">Thời gian giữ ghế:</span>
+            <span class="countdown-time" id="countdown-display">05:00</span>
+        </div>
+
+        <div class="container text-center mb-3">
+            <h4 style="color:var(--brand-color); font-weight:900;" id="booking-room-title">HCMUT Cinema | Cinema 01</h4>
+            <p class="text-muted fw-bold" id="booking-movie-title">Avengers: Endgame - 18:30 Hôm nay</p>
+        </div>
+
+        <!-- Room Selector -->
+        <div class="room-selector" style="display: none;">
+            <select id="roomSelect" onchange="changeRoom(this.value)">
+                <option value="1">Cinema 01 — 2D (10×12 = 120 ghế + Sweetbox)</option>
+                <option value="2">Cinema 02 — 2D (9×14 = 126 ghế + Sweetbox)</option>
+                <option value="3">Cinema 03 — 2D (8×12 = 96 ghế + Sweetbox)</option>
+                <option value="4">Cinema 04 — 2D (10×10 = 100 ghế + Sweetbox)</option>
+                <option value="5">Cinema 05 — 3D (12×14 = 168 ghế + Sweetbox)</option>
+                <option value="6">Cinema 06 — 3D (11×16 = 176 ghế + Sweetbox)</option>
+                <option value="7">IMAX 01 — Laser GT 1.43:1 (14×18 = 252 ghế)</option>
+                <option value="8">IMAX 02 — 15/70mm Film (15×20 = 300 ghế) 🏆</option>
+            </select>
+        </div>
+
+        <div class="cinema-screen">MÀN HÌNH CHÍNH</div>
+
+        <div class="seat-map" id="seatMapContainer">
+            <!-- Seats generated by JS -->
+        </div>
+
+        <div class="seat-legend" id="seatLegend">
+            <div class="legend-item"><div class="legend-box" style="background:var(--brand-color); border:none;"></div> Đang chọn</div>
+            <div class="legend-item"><div class="legend-box" style="background:#e0e0e0; border:none;"></div> Đã đặt</div>
+            <div class="legend-item"><div class="legend-box" style="background:white; border: 2px solid #4ea642;"></div> Thường</div>
+            <div class="legend-item"><div class="legend-box" style="background:white; border: 2px solid #d4af37;"></div> VIP</div>
+        </div>
+
+        <!-- STICKY FOOTER CHO BOOKING -->
+        <div class="booking-footer">
+            <div class="footer-inner p-0">
+                <div class="ticket-info">
+                    <div class="info-col">
+                        <div class="info-title">Phim</div>
+                        <div class="info-value" id="booking-bottom-movie-title">Avengers: Endgame (IMAX)</div>
+                    </div>
+                    <div class="info-col">
+                        <div class="info-title">Ghế chọn</div>
+                        <div class="info-value" id="demo-botSeatInfo" style="color:var(--brand-color); font-weight:bold;">--</div>
+                    </div>
+                    <div class="info-col">
+                        <div class="info-title">Tạm tính</div>
+                        <div class="info-value" id="demo-botPrice" style="font-size: 18px; font-weight: bold;">0 đ</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-footer" onclick="showPaymentModal()">
+                    THANH TOÁN <i class="fas fa-chevron-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOVIE DETAIL MODAL
+    =============================================== -->
+    <div class="modal fade" id="movieDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none;">
+                <div class="modal-body p-0">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2" data-bs-dismiss="modal" style="z-index:10;"></button>
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img id="detailPoster" src="" alt="Poster" style="width:100%; height:100%; object-fit:cover; min-height:400px;">
+                        </div>
+                        <div class="col-md-8 p-4">
+                            <h3 id="detailTitle" class="fw-bold mb-2" style="color:var(--brand-color);"></h3>
+                            <div id="detailMeta" class="mb-3"></div>
+                            <div id="detailTrailer" class="mb-4" style="border-radius:10px; overflow:hidden;"></div>
+                            <div id="detailShowtimes"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP TOÀN CỤC -->
+    <div class="modal fade" id="globalLoginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal" style="border-radius: 15px; overflow: hidden; background: #e0e0e0; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <div class="modal-body text-center p-5">
+                    <div class="mb-3"><i class="fas fa-user-circle fa-3x" style="color:var(--brand-color);"></i></div>
+                    <p class="fw-bold mb-1 fs-4" style="color:var(--brand-color);">Đăng Nhập</p>
+                    <p class="text-muted small mb-4">Đăng nhập để trải nghiệm đặt vé tốt hơn</p>
+                    <input type="email" id="global-login-email" class="form-control text-center mb-3" placeholder="Email của bạn" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px; background: rgba(255,255,255,0.7); border:1px solid #ccc;">
+                    <input type="password" id="global-login-pass" class="form-control text-center mb-4" placeholder="Mật khẩu" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px; background: rgba(255,255,255,0.7); border:1px solid #ccc;">
+                    <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow mb-3" onclick="handleGlobalLogin()">ĐĂNG NHẬP</button>
+                    <button type="button" class="btn btn-link text-muted mb-2" onclick="switchGlobalToRegister()">Chưa có tài khoản? Đăng ký ngay</button>
+                    <button type="button" class="btn btn-outline-secondary w-100 rounded-pill fw-bold" data-bs-dismiss="modal">ĐÓNG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THANH TOÁN (GLASSMORPHISM) -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+                    <h4 class="modal-title font-weight-bold" style="color:var(--brand-color); font-weight:900;">XÁC NHẬN THANH TOÁN</h4>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <!-- Step Login: Đăng nhập ID + Mật khẩu -->
+                    <div id="payment-step-login">
+                        <div class="mb-3"><i class="fas fa-user-lock fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Đăng nhập để thanh toán</p>
+                        <p class="text-muted small mb-3">Nhập Email và mật khẩu của bạn</p>
+                        <input type="email" id="login-id" class="form-control text-center mb-3" placeholder="Email của bạn (VD: user@email.com)" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px;">
+                        <input type="password" id="login-pass" class="form-control text-center mb-4" placeholder="Mật khẩu" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px;">
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow mb-3" onclick="handleLogin()">ĐĂNG NHẬP <i class="fas fa-arrow-right ms-2"></i></button>
+                        <hr>
+                        <p class="text-muted small mb-2">Chưa có tài khoản?</p>
+                        <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="showRegisterInModal()"><i class="fas fa-user-plus me-2"></i>TẠO TÀI KHOẢN MỚI</button>
+                    </div>
+                    <!-- Step Register: Đăng ký inline -->
+                    <div id="payment-step-register" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-user-plus fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Tạo Tài Khoản Mới</p>
+                        <p class="text-muted small mb-3">Điền đầy đủ thông tin bên dưới</p>
+                        <input type="text" id="reg-modal-name" class="form-control mb-2" placeholder="Họ và tên" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="email" id="reg-modal-email" class="form-control mb-2" placeholder="Email (để nhận OTP xác nhận)" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="tel" id="reg-modal-phone" class="form-control mb-2" placeholder="Số điện thoại" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="password" id="reg-modal-pass" class="form-control mb-4" placeholder="Tạo mật khẩu" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow mb-2" onclick="handleModalRegister()">GỬI MÃ OTP <i class="fas fa-paper-plane ms-2"></i></button>
+                        <button type="button" class="btn btn-link text-muted" onclick="showLoginInModal()"><i class="fas fa-arrow-left me-1"></i> Quay lại đăng nhập</button>
+                    </div>
+                    <!-- Step Register OTP -->
+                    <div id="payment-step-reg-otp" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-envelope-open-text fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Xác Nhận Email</p>
+                        <p class="text-muted small mb-4" id="reg-otp-email-hint">Nhập mã OTP 6 số đã gửi đến email của bạn</p>
+                        <div class="otp-inputs" id="regOtpInputs">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="verifyRegOTP()">XÁC NHẬN OTP</button>
+                    </div>
+                    <!-- Step New ID: Cấp mã ID -->
+                    <div id="payment-step-new-id" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-check-circle fa-4x text-success"></i></div>
+                        <h5 class="text-success fw-bold mb-2">Tạo Tài Khoản Thành Công!</h5>
+                        <p class="text-muted small mb-3">Mã ID của bạn đã được cấp. Hãy ghi nhớ để sử dụng lần sau.</p>
+                        <div style="background:#f0f7ff; border:2px dashed var(--brand-color); border-radius:12px; padding:20px; max-width:280px; margin:0 auto 20px;">
+                            <h3 style="color:var(--brand-color); font-weight:900; letter-spacing:2px;" id="newCustomerIdDisplay">Tạo thành công!</h3>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="proceedAfterRegister()">TIẾP TỤC ĐẶT VÉ <i class="fas fa-arrow-right ms-2"></i></button>
+                    </div>
+                    <!-- Step OTP: Xác nhận thanh toán -->
+                    <div id="payment-step-otp" style="display:none;">
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>Đăng nhập</span>
+                            <span class="badge bg-primary px-3 py-2">2. OTP Thanh toán</span>
+                            <span class="badge bg-light text-muted px-3 py-2">3. E-Ticket</span>
+                        </div>
+                        <div class="mb-3"><i class="fas fa-shield-alt fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Xác nhận thanh toán <span class="text-danger fs-5" id="paymentTotalDisplay">0đ</span></p>
+                        <p class="text-muted small mb-4" id="otp-email-hint">Mã OTP đã gửi đến email — Hiệu lực 3 phút</p>
+                        <div class="otp-inputs" id="otpInputs">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="verifyOTP()">XÁC NHẬN THANH TOÁN</button>
+                    </div>
+                    <!-- Step E-Ticket QR -->
+                    <div id="payment-step-2" style="display:none;">
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>Đăng nhập</span>
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>OTP</span>
+                            <span class="badge bg-success px-3 py-2">3. E-Ticket ✓</span>
+                        </div>
+                        <h5 class="text-success fw-bold mb-3"><i class="fas fa-check-circle"></i> THANH TOÁN THÀNH CÔNG</h5>
+                        <p class="small text-muted mb-1">Email xác nhận đã được gửi kèm E-Ticket</p>
+                        <p class="small text-muted mb-3">Đưa mã QR này cho nhân viên soát vé</p>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=HCMUT-Ticket-VIP-A5-Avengers" alt="QR Code" style="width: 200px; height: 200px; border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                        <br>
+                        <button type="button" class="btn btn-secondary btn-lg w-100 rounded-pill fw-bold" data-bs-dismiss="modal" onclick="showView('home');">ĐÓNG & QUAY VỀ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL FOOTER
+    =============================================== -->
+    <div class="global-footer" id="globalFooter">
+        <div class="container" style="max-width: 1100px;">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white fw-bold mb-3"><i class="fas fa-film me-2"></i>HCMUT CINEMA</h5>
+                    <p style="font-size:14px; line-height:1.8;">Hệ thống Quản lý Đặt vé Xem phim<br>Đồ án Thực tập Doanh nghiệp<br>Khoa KH & KT Máy tính — ĐHQG TP.HCM</p>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Logo_Bach_Khoa.png" alt="HCMUT" height="45" style="opacity:0.7; margin-top:5px;">
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white fw-bold mb-3">LIÊN KẾT</h6>
+                    <div style="font-size:14px; line-height:2.2;">
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Trang chủ</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Phim đang chiếu</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Hệ thống rạp</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Khuyến mãi</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Liên hệ hỗ trợ</a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white fw-bold mb-3">KẾT NỐI VỚI CHÚNG TÔI</h6>
+                    <div class="footer-social mb-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <p style="font-size:14px; line-height:1.8;">
+                        <i class="fas fa-map-marker-alt me-2"></i>268 Lý Thường Kiệt, Q.10, TP.HCM<br>
+                        <i class="fas fa-phone me-2"></i>1900 0000 (Hotline)<br>
+                        <i class="fas fa-envelope me-2"></i>cinema@hcmut.edu.vn
+                    </p>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1);">
+            <p class="text-center mb-0" style="font-size:13px;">© 2026 HCMUT Cinema — Vietnam National University Ho Chi Minh City. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Modal Hết Thời Gian -->
+    <div class="modal fade" id="timeoutModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-clock text-danger" style="font-size: 60px;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Hết thời gian giữ ghế!</h4>
+                    <p class="text-muted mb-4">Rất tiếc, thời gian giữ ghế của bạn đã hết. Các ghế bạn đã chọn sẽ được giải phóng để người khác có thể đặt.</p>
+                    <button class="btn btn-primary w-100 fw-bold py-3 rounded-pill" onclick="handleTimeoutReturn()">
+                        <i class="fas fa-home me-2"></i>Về Trang Chính
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="http://54.255.100.246:3000/socket.io/socket.io.js"></script>
+    <script src="js/app.js?v=17"></script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>HCMUT Cinema - Đỉnh Cao UI/UX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- NÚT ĐIỀU KHIỂN DEMO -->
+    <div class="demo-controls">
+        <b class="d-block mb-3 text-center border-bottom pb-2" style="color:var(--brand-color);">ĐIỀU KHIỂN DEMO</b>
+        
+        <small class="text-muted d-block mb-1 fw-bold" style="font-size:10px;">— CHUNG —</small>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('landing')">1. Chọn Role</button>
+
+        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— KHÁCH HÀNG —</small>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('auth')">2. Đăng nhập</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('register')">2.1. Đăng ký + OTP</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('home')">3. Trang chủ Phim</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoShowMovieDetail()">3.1. Popup Chi tiết Phim</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="showView('booking')">4. Đặt Ghế (Cinema 01)</button>
+        <button class="btn btn-outline-danger btn-sm" onclick="demoShowSeatLock()">4★. Demo Khóa Ghế RT</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(3)">4a. Phòng 03 — Premium</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(5)">4b. Phòng 05 — 3D</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(7)">4c. IMAX Hall 1</button>
+        <button class="btn btn-outline-warning btn-sm" onclick="demoShowPayment()">4.1. Modal Thanh Toán</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoShowQR()">4.2. Vé QR Code</button>
+
+        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— ADMIN —</small>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowDashboard()">5. Dashboard + Charts</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('lichchieu', 1)">5.1. Quản lý Lịch chiếu</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowAddShowtime()">5.2. Modal Thêm Suất</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('phim', 2)">5.3. Quản lý Phim</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('tienich', 3)">5.4. Tiện ích Nhóm 3</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoCheckDiemShortcut()">5.4a. Tra cứu Điểm (kết quả)</button>
+        <button class="btn btn-outline-success btn-sm" onclick="demoCheckGheShortcut()">5.4b. Kiểm tra Ghế (kết quả)</button>
+    </div>
+
+    <!-- HEADER -->
+    <header class="cine-header">
+        <div class="header-inner">
+            <h1 class="brand-logo">HCMUT</h1>
+            <nav class="nav-links">
+                <a href="#" class="active">PHIM ĐANG CHIẾU</a>
+                <a href="#">RẠP & GIÁ VÉ</a>
+            </nav>
+            <div style="color:white; font-size: 14px;"><i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b>Khách vãng lai</b></div>
+        </div>
+    </header>
+
+    <!-- ==============================================
+     3. ADMIN (FULL CÁC CHỨC NĂNG CỦA NHÓM BẠN)
+    =============================================== -->
+    <div id="admin" class="view-section">
+        <div class="container mt-5" style="max-width: 1100px;">
+            <div class="admin-nav">
+                <button class="active" onclick="switchAdminTab('dashboard', this)"><i class="fas fa-chart-bar me-1"></i> Dashboard</button>
+                <button onclick="switchAdminTab('lichchieu', this)">Quản Lý Lịch Chiếu</button>
+                <button onclick="switchAdminTab('phim', this)">Quản Lý Phim</button>
+                <button onclick="switchAdminTab('tienich', this)">Tiện Ích Nhóm 3</button>
+            </div>
+
+            <!-- Tab 0: DASHBOARD -->
+            <div id="tab-dashboard" class="admin-tab">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3"><div class="stat-card"><div id="stat-movies" class="stat-number">0</div><div class="stat-label">Phim đang chiếu</div></div></div>
+                    <div class="col-md-3"><div class="stat-card"><div id="stat-tickets" class="stat-number" style="color:#27ae60;">0</div><div class="stat-label">Vé bán hôm nay</div></div></div>
+                    <div class="col-md-3"><div class="stat-card"><div id="stat-occupancy" class="stat-number" style="color:#e67e22;">0%</div><div class="stat-label">Tỷ lệ lấp đầy</div></div></div>
+                    <div class="col-md-3"><div class="stat-card"><div id="stat-revenue" class="stat-number" style="color:#e74c3c;">0</div><div class="stat-label">Doanh thu (VNĐ)</div></div></div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-7">
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-3" style="color:var(--brand-color);"><i class="fas fa-chart-bar me-2"></i>Doanh thu theo Phim (Triệu VNĐ)</h5>
+                            <canvas id="revenueChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-3" style="color:var(--brand-color);"><i class="fas fa-chart-pie me-2"></i>Lấp đầy theo Loại phòng</h5>
+                            <canvas id="occupancyChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4 mt-1">
+                    <div class="col-md-12">
+                        <div class="admin-card">
+                            <h5 class="fw-bold mb-3" style="color:var(--brand-color);"><i class="fas fa-chart-line me-2"></i>Doanh thu 7 ngày gần nhất</h5>
+                            <canvas id="trendChart" height="220"></canvas>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- Tab 1: Lịch Chiếu -->
+            <div id="tab-lichchieu" class="admin-tab" style="display: none;">
+                <div class="admin-card p-0">
+                    <div class="d-flex justify-content-between align-items-center p-4 pb-2">
+                        <h5 class="fw-bold text-primary m-0"><i class="fas fa-calendar-alt me-2"></i> Danh sách suất chiếu</h5>
+                        <button class="btn btn-primary shadow-sm fw-bold" onclick="new bootstrap.Modal(document.getElementById('addShowtimeModal')).show();"><i class="fas fa-plus-circle me-2"></i> Thêm Suất Mới</button>
+                    </div>
+                    <div class="table-responsive p-3 pt-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Mã</th>
+                                    <th>Phim</th>
+                                    <th>Rạp / Phòng</th>
+                                    <th>Thời Gian</th>
+                                    <th>Định Dạng</th>
+                                    <th>Ngôn Ngữ</th>
+                                    <th class="text-center">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminShowtimeTable">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Quản Lý Phim -->
+            <div id="tab-phim" class="admin-tab" style="display: none;">
+                <!-- Bảng Danh Sách Phim -->
+                <div class="admin-card p-0 mb-4">
+                    <div class="d-flex justify-content-between align-items-center p-4 pb-2">
+                        <h5 class="fw-bold text-primary m-0"><i class="fas fa-film me-2"></i> Phim Đang Khai Thác</h5>
+                    </div>
+                    <div class="table-responsive p-3 pt-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3" style="width: 80px;">Poster</th>
+                                    <th>Tên Phim</th>
+                                    <th>Thời Lượng</th>
+                                    <th>Ngôn Ngữ</th>
+                                    <th>Định dạng</th>
+                                    <th>Bản Quyền & File</th>
+                                    <th class="text-center">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminMovieTable">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Form Thêm Phim Mới -->
+                <div class="admin-card">
+                    <h4 class="fw-bold text-primary mb-4"><i class="fas fa-film me-2"></i> Thêm Phim Mới</h4>
+                    <form onsubmit="submitAddMovie(event)">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-muted">Tên Phim <span class="text-danger">*</span></label>
+                                <input type="text" id="addMovieTitle" class="form-control form-control-lg bg-light" placeholder="Nhập tên phim..." required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="fw-bold mb-2 text-muted">Thời Lượng</label>
+                                <input type="number" id="addMovieDuration" class="form-control form-control-lg bg-light" placeholder="Phút">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="fw-bold mb-2 text-muted">Ngôn Ngữ</label>
+                                <input type="text" id="addMovieLanguage" class="form-control form-control-lg bg-light" placeholder="VD: Phụ Đề">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="fw-bold mb-2 text-muted">Định dạng</label>
+                                <input type="text" id="addMovieFormat" class="form-control form-control-lg bg-light" placeholder="VD: 2D, 3D">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-muted"><i class="fas fa-image me-1"></i> Hình ảnh Poster (Thẻ đứng)</label>
+                                <input type="url" id="addMoviePoster" class="form-control bg-light" placeholder="https://link-anh-poster.jpg">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-muted"><i class="fas fa-image me-1"></i> Hình ảnh Banner (Nền ngang)</label>
+                                <input type="url" id="addMovieBanner" class="form-control bg-light" placeholder="https://link-anh-banner.jpg">
+                            </div>
+                            <div class="col-12">
+                                <label class="fw-bold mb-2 text-muted"><i class="fab fa-youtube me-1 text-danger"></i> Link Trailer Youtube</label>
+                                <input type="url" id="addMovieTrailer" class="form-control bg-light" placeholder="https://youtube.com/watch?v=...">
+                            </div>
+                            <div class="col-12 border-top pt-3 mt-2">
+                                <label class="form-label fw-bold text-primary"><i class="fas fa-file-upload me-1"></i> Upload Bản Phim & Hợp Đồng Thầu (DCP / MP4 / PDF / DOCX) <span class="text-danger">*</span></label>
+                                <input type="file" id="addMovieFile" class="form-control bg-white border-primary" accept=".mp4,.dcp,.pdf,.docx" onchange="handleDocxUpload(event)" required>
+                                <small class="text-muted d-block mt-1 fst-italic"><i class="fas fa-info-circle"></i> Bắt buộc phải upload file vật lý để hệ thống xét duyệt bản quyền trước khi phim được phép tạo lịch chiếu.</small>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4 pt-3 border-top">
+                            <button type="reset" class="btn btn-light px-4 me-2 fw-bold">XÓA TRẮNG</button>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="fas fa-save me-2"></i> LƯU PHIM MỚI</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 2: Tiện ích (Kiểm tra ghế, Check điểm) -->
+            <div id="tab-tienich" class="admin-tab" style="display: none;">
+                <div class="row g-4">
+                    <!-- Tool 1: Check Điểm -->
+                    <div class="col-md-6">
+                        <div class="admin-card h-100">
+                            <h4 style="color: var(--brand-color);" class="fw-bold mb-4"><i class="fas fa-graduation-cap me-2"></i> Tra Cứu Điểm Tích Lũy</h4>
+                            <div class="mb-3">
+                                <label class="text-muted fw-bold mb-2">Mã Số Khách Hàng (ID)</label>
+                                <input type="text" id="inputCheckDiem" class="form-control form-control-lg bg-light" placeholder="Nhập ID..." value="2">
+                            </div>
+                            <button class="btn btn-primary w-100 fw-bold py-2" onclick="demoCheckDiem()"><i class="fas fa-search me-2"></i> TRA CỨU</button>
+                            <div id="resultDiem" class="result-panel mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tool 2: Kiểm Tra Chỗ Ngồi -->
+                    <div class="col-md-6">
+                        <div class="admin-card h-100">
+                            <h4 style="color: var(--brand-color);" class="fw-bold mb-4"><i class="fas fa-chair me-2"></i> Kiểm Tra Chỗ Ngồi</h4>
+                            <div class="row g-3 mb-3">
+                                <div class="col-6"><label class="text-muted fw-bold mb-1">Suất Chiếu</label><input type="text" id="inputSuat" class="form-control bg-light" placeholder="ID Suất" value="1"></div>
+                                <div class="col-6"><label class="text-muted fw-bold mb-1">Phòng</label><input type="text" id="inputPhong" class="form-control bg-light" placeholder="ID Phòng" value="1"></div>
+                                <div class="col-6"><label class="text-muted fw-bold mb-1">Hàng (A,B)</label><input type="text" id="inputHang" class="form-control bg-light" value="A"></div>
+                                <div class="col-6"><label class="text-muted fw-bold mb-1">Cột (1,2)</label><input type="text" id="inputCot" class="form-control bg-light" value="1"></div>
+                            </div>
+                            <button class="btn btn-primary w-100 fw-bold py-2" onclick="demoCheckGhe()"><i class="fas fa-check-circle me-2"></i> KIỂM TRA TRẠNG THÁI</button>
+                            <div id="resultGhe" class="result-panel mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         MOVIE DETAIL MODAL
+    =============================================== -->
+    <div class="modal fade" id="movieDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none;">
+                <div class="modal-body p-0">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2" data-bs-dismiss="modal" style="z-index:10;"></button>
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img id="detailPoster" src="" alt="Poster" style="width:100%; height:100%; object-fit:cover; min-height:400px;">
+                        </div>
+                        <div class="col-md-8 p-4">
+                            <h3 id="detailTitle" class="fw-bold mb-2" style="color:var(--brand-color);"></h3>
+                            <div id="detailMeta" class="mb-3"></div>
+                            <div id="detailTrailer" class="mb-4" style="border-radius:10px; overflow:hidden;"></div>
+                            <h6 class="fw-bold text-muted mb-3"><i class="fas fa-clock me-1"></i> SUẤT CHIẾU HÔM NAY</h6>
+                            <div id="detailShowtimes" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THANH TOÁN (GLASSMORPHISM) -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header border-0 pb-0 justify-content-center mt-3">
+                    <h4 class="modal-title font-weight-bold" style="color:var(--brand-color); font-weight:900;">XÁC NHẬN THANH TOÁN</h4>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <!-- Step Login: Đăng nhập ID + Mật khẩu -->
+                    <div id="payment-step-login">
+                        <div class="mb-3"><i class="fas fa-user-lock fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Đăng nhập để thanh toán</p>
+                        <p class="text-muted small mb-3">Nhập Mã ID Khách hàng và mật khẩu</p>
+                        <input type="text" id="login-id" class="form-control text-center mb-3" placeholder="Mã ID (VD: HCMUT-10293)" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px;">
+                        <input type="password" id="login-pass" class="form-control text-center mb-4" placeholder="Mật khẩu" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px; font-size:15px;">
+                        <p class="small text-muted mb-3">Demo: ID = <b style="color:var(--brand-color);">HCMUT-10293</b>, Pass = <b>123456</b></p>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow mb-3" onclick="handleLogin()">ĐĂNG NHẬP <i class="fas fa-arrow-right ms-2"></i></button>
+                        <hr>
+                        <p class="text-muted small mb-2">Chưa có tài khoản?</p>
+                        <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="showRegisterInModal()"><i class="fas fa-user-plus me-2"></i>TẠO TÀI KHOẢN MỚI</button>
+                    </div>
+                    <!-- Step Register: Đăng ký inline -->
+                    <div id="payment-step-register" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-user-plus fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Tạo Tài Khoản Mới</p>
+                        <p class="text-muted small mb-3">Điền đầy đủ thông tin bên dưới</p>
+                        <input type="text" id="reg-modal-name" class="form-control mb-2" placeholder="Họ và tên" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="email" id="reg-modal-email" class="form-control mb-2" placeholder="Email (để nhận OTP xác nhận)" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="tel" id="reg-modal-phone" class="form-control mb-2" placeholder="Số điện thoại" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <input type="password" id="reg-modal-pass" class="form-control mb-4" placeholder="Tạo mật khẩu" style="max-width:320px; margin:0 auto; border-radius:10px; padding:12px;">
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow mb-2" onclick="handleModalRegister()">GỬI MÃ OTP <i class="fas fa-paper-plane ms-2"></i></button>
+                        <button type="button" class="btn btn-link text-muted" onclick="showLoginInModal()"><i class="fas fa-arrow-left me-1"></i> Quay lại đăng nhập</button>
+                    </div>
+                    <!-- Step Register OTP -->
+                    <div id="payment-step-reg-otp" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-envelope-open-text fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Xác Nhận Email</p>
+                        <p class="text-muted small mb-4" id="reg-otp-email-hint">Nhập mã OTP 6 số đã gửi đến email của bạn</p>
+                        <div class="otp-inputs" id="regOtpInputs">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                        </div>
+                        <p class="small text-muted mb-3">Mã demo: <b style="color:var(--brand-color); letter-spacing:3px;">123456</b></p>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="verifyRegOTP()">XÁC NHẬN OTP</button>
+                    </div>
+                    <!-- Step New ID: Cấp mã ID -->
+                    <div id="payment-step-new-id" style="display:none;">
+                        <div class="mb-3"><i class="fas fa-check-circle fa-4x text-success"></i></div>
+                        <h5 class="text-success fw-bold mb-2">Tạo Tài Khoản Thành Công!</h5>
+                        <p class="text-muted small mb-3">Mã ID của bạn đã được cấp. Hãy ghi nhớ để sử dụng lần sau.</p>
+                        <div style="background:#f0f7ff; border:2px dashed var(--brand-color); border-radius:12px; padding:20px; max-width:280px; margin:0 auto 20px;">
+                            <p class="text-muted small mb-1">Mã ID Khách hàng</p>
+                            <h3 style="color:var(--brand-color); font-weight:900; letter-spacing:2px;" id="newCustomerIdDisplay">HCMUT-10293</h3>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="proceedAfterRegister()">TIẾP TỤC THANH TOÁN <i class="fas fa-arrow-right ms-2"></i></button>
+                    </div>
+                    <!-- Step OTP: Xác nhận thanh toán -->
+                    <div id="payment-step-otp" style="display:none;">
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>Đăng nhập</span>
+                            <span class="badge bg-primary px-3 py-2">2. OTP Thanh toán</span>
+                            <span class="badge bg-light text-muted px-3 py-2">3. E-Ticket</span>
+                        </div>
+                        <div class="mb-3"><i class="fas fa-shield-alt fa-3x" style="color:var(--brand-color);"></i></div>
+                        <p class="fw-bold mb-1">Xác nhận thanh toán <span class="text-danger fs-5" id="paymentTotalDisplay">0đ</span></p>
+                        <p class="text-muted small mb-4" id="otp-email-hint">Mã OTP đã gửi đến email — Hiệu lực 3 phút</p>
+                        <div class="otp-inputs" id="otpInputs">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                            <input type="text" maxlength="1" oninput="otpAutoNext(this)">
+                        </div>
+                        <p class="small text-muted mb-3">Mã demo: <b style="color:var(--brand-color); letter-spacing:3px;">123456</b></p>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow" onclick="verifyOTP()">XÁC NHẬN THANH TOÁN</button>
+                    </div>
+                    <!-- Step E-Ticket QR -->
+                    <div id="payment-step-2" style="display:none;">
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>Đăng nhập</span>
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-check me-1"></i>OTP</span>
+                            <span class="badge bg-success px-3 py-2">3. E-Ticket ✓</span>
+                        </div>
+                        <h5 class="text-success fw-bold mb-3"><i class="fas fa-check-circle"></i> THANH TOÁN THÀNH CÔNG</h5>
+                        <p class="small text-muted mb-1">Email xác nhận đã được gửi kèm E-Ticket</p>
+                        <p class="small text-muted mb-3">Đưa mã QR này cho nhân viên soát vé</p>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=HCMUT-Ticket-VIP-A5-Avengers" alt="QR Code" style="width: 200px; height: 200px; border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                        <br>
+                        <button type="button" class="btn btn-secondary btn-lg w-100 rounded-pill fw-bold" data-bs-dismiss="modal" onclick="showView('home');">ĐÓNG & QUAY VỀ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM SUẤT CHIẾU (ADMIN) -->
+    <div class="modal fade" id="addShowtimeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 12px; border-top: 5px solid var(--brand-color);">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary"><i class="fas fa-calendar-plus me-2"></i> Thêm Suất Chiếu Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formAddShowtime" onsubmit="submitAddShowtime(event)">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-muted">Phim</label>
+                                <select class="form-select bg-light" id="showtimeMovieSelect" onchange="checkShowtimeConflict(); updateShowtimeOptions()">
+                                    <option value="1">Avengers: Endgame</option>
+                                    <option value="2">Spider-Man: No Way Home</option>
+                                    <option value="3">Oppenheimer</option>
+                                    <option value="4">Mission: Impossible</option>
+                                    <option value="5">Interstellar</option>
+                                    <option value="6">Dunkirk</option>
+                                    <option value="7">Pulp Fiction</option>
+                                    <option value="8">Demon Slayer</option>
+                                    <option value="9">Once Upon a Time</option>
+                                    <option value="10">28 Years Later</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-muted">Phòng chiếu</label>
+                                <select class="form-select bg-light" id="showtimeRoomSelect">
+                                    <option value="1">Cinema 01 — 2D (120 ghế)</option>
+                                    <option value="2">Cinema 02 — 2D (126 ghế)</option>
+                                    <option value="3">Cinema 03 — 2D (96 ghế)</option>
+                                    <option value="4">Cinema 04 — 2D (100 ghế)</option>
+                                    <option value="5">Cinema 05 — 3D (168 ghế)</option>
+                                    <option value="6">Cinema 06 — 3D (176 ghế)</option>
+                                    <option value="7">IMAX 01 — Laser (252 ghế)</option>
+                                    <option value="8">IMAX 02 — 70mm Film (300 ghế) 🏆</option>
+                                </select>
+                                <div id="roomConflictInfo" class="mt-2" style="display:none;"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-2 text-muted">Ngày giờ chiếu</label>
+                                <input type="datetime-local" class="form-control bg-light" id="showtimeDatetime" onchange="checkShowtimeConflict()" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-2 text-muted">Định dạng</label>
+                                <select class="form-select bg-light" id="showtimeFormatSelect" onchange="checkShowtimeConflict()">
+                                    <option>3D</option>
+                                    <option>IMAX</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-2 text-muted">Ngôn ngữ</label>
+                                <select class="form-select bg-light" id="showtimeLangSelect">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light px-4 me-2 fw-bold" data-bs-dismiss="modal">HỦY</button>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="fas fa-save me-2"></i> LƯU SUẤT CHIẾU</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================
+         GLOBAL FOOTER
+    =============================================== -->
+    <div class="global-footer" id="globalFooter">
+        <div class="container" style="max-width: 1100px;">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white fw-bold mb-3"><i class="fas fa-film me-2"></i>HCMUT CINEMA</h5>
+                    <p style="font-size:14px; line-height:1.8;">Hệ thống Quản lý Đặt vé Xem phim<br>Đồ án Thực tập Doanh nghiệp<br>Khoa KH & KT Máy tính — ĐHQG TP.HCM</p>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Logo_Bach_Khoa.png" alt="HCMUT" height="45" style="opacity:0.7; margin-top:5px;">
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white fw-bold mb-3">LIÊN KẾT</h6>
+                    <div style="font-size:14px; line-height:2.2;">
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Trang chủ</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Phim đang chiếu</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Hệ thống rạp</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Khuyến mãi</a><br>
+                        <a href="#"><i class="fas fa-chevron-right me-2 small"></i>Liên hệ hỗ trợ</a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white fw-bold mb-3">KẾT NỐI VỚI CHÚNG TÔI</h6>
+                    <div class="footer-social mb-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <p style="font-size:14px; line-height:1.8;">
+                        <i class="fas fa-map-marker-alt me-2"></i>268 Lý Thường Kiệt, Q.10, TP.HCM<br>
+                        <i class="fas fa-phone me-2"></i>1900 0000 (Hotline)<br>
+                        <i class="fas fa-envelope me-2"></i>cinema@hcmut.edu.vn
+                    </p>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1);">
+            <p class="text-center mb-0" style="font-size:13px;">© 2026 HCMUT Cinema — Vietnam National University Ho Chi Minh City. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Edit Movie Modal -->
+    <div class="modal fade" id="editMovieModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark fw-bold"><i class="fas fa-edit me-2"></i> Chỉnh Sửa Phim</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMovieForm" onsubmit="submitEditMovie(event)">
+                        <input type="hidden" id="editMovieId">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="fw-bold mb-1">Tên Phim</label>
+                                <input type="text" id="editMovieTitle" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-1">Thời Lượng</label>
+                                <input type="number" id="editMovieDuration" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-1">Đạo Diễn</label>
+                                <input type="text" id="editMovieDirector" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-1">Ngôn Ngữ</label>
+                                <input type="text" id="editMovieLanguage" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold mb-1">Định dạng</label>
+                                <input type="text" id="editMovieFormat" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-1">Link Poster</label>
+                                <input type="url" id="editMoviePoster" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-1">Link Banner</label>
+                                <input type="url" id="editMovieBanner" class="form-control">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="fw-bold mb-1">Link Trailer</label>
+                                <input type="url" id="editMovieTrailer" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-warning fw-bold">Lưu Thay Đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="http://54.255.100.246:3000/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js"></script>
+    <script src="js/app.js?v=2.5"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('admin');
+        });
+    </script>
+</body>
+</html>
