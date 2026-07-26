@@ -209,13 +209,19 @@ router.post('/booking/confirm', async (req, res) => {
         
         await pool.query('BEGIN');
         
-        // Insert ticket
-        await pool.query(`INSERT INTO VE (ID_SuatChieu, ID_Phong, ViTriHang, ViTriCot, ID_KhachHang, GiaVe, MaVeQR) VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
-            [id_suatchieu, id_phong, vitrihang, vitricot, id_kh, giaVe, qrCodeUrl]);
-        
-        // Update TRANG_THAI_GHE
+        // Kiểm tra xem ghế đã bị người khác đặt chưa
+        const checkSeat = await pool.query(`SELECT TrangThai FROM TRANG_THAI_GHE WHERE ID_SuatChieu = $1 AND ID_Phong = $2 AND ViTriHang = $3 AND ViTriCot = $4`, [id_suatchieu, id_phong, vitrihang, vitricot]);
+        if (checkSeat.rows.length > 0 && checkSeat.rows[0].trangthai === 'DaDat') {
+            throw new Error('Ghế đã bị đặt trước');
+        }
+
+        // 1. Update TRANG_THAI_GHE TRƯỚC để thỏa mãn khóa ngoại cho bảng VE
         await pool.query(`INSERT INTO TRANG_THAI_GHE (ID_SuatChieu, ID_Phong, ViTriHang, ViTriCot, TrangThai) VALUES ($1, $2, $3, $4, 'DaDat') ON CONFLICT (ID_SuatChieu, ID_Phong, ViTriHang, ViTriCot) DO UPDATE SET TrangThai = 'DaDat'`, 
             [id_suatchieu, id_phong, vitrihang, vitricot]);
+
+        // 2. Insert ticket SAU
+        await pool.query(`INSERT INTO VE (ID_SuatChieu, ID_Phong, ViTriHang, ViTriCot, ID_KhachHang, GiaVe, MaVeQR) VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
+            [id_suatchieu, id_phong, vitrihang, vitricot, id_kh, giaVe, qrCodeUrl]);
         
         // Update TongChiTieu
         await pool.query(`UPDATE KHACHHANG SET TongChiTieu = TongChiTieu + $1 WHERE ID_KhachHang = $2`, [giaVe, id_kh]);
