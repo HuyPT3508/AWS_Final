@@ -77,7 +77,7 @@ router.get('/showtime/:id/seats', async (req, res) => {
     }
 
     res.json({
-      booked: bookedResult.rows.map(r => `${r.vitrihang}${r.vitricot}`),
+      booked: bookedResult.rows.map(r => `${r.vitrihang.trim()}${r.vitricot}`),
       locked: lockedSeats
     });
   } catch (error) {
