@@ -199,11 +199,11 @@ router.post('/booking/confirm', async (req, res) => {
         const id_kh = userResult.rows[0].id_khachhang;
         const vitrihang = ghe.charAt(0);
         const vitricot = parseInt(ghe.substring(1));
-        // Lấy ID_Phong và GiaVeCoBan từ SUATCHIEU
+        // Lấy ID_Phong từ SUATCHIEU (GiaVeCoBan chỉ là fallback nếu frontend không gửi giá)
         const scResult = await pool.query('SELECT ID_Phong, GiaVeCoBan FROM SUATCHIEU WHERE ID_SuatChieu = $1', [id_suatchieu]);
         if (scResult.rows.length === 0) return res.json({ success: false, message: 'Không tìm thấy suất chiếu' });
         const id_phong = scResult.rows[0].id_phong;
-        const giaVe = scResult.rows[0].giavecoban || 100000;
+        const giaVe = req.body.giaVe || scResult.rows[0].giavecoban || 100000;
         
         const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Ticket_${id_suatchieu}_${ghe}_${id_kh}`;
         

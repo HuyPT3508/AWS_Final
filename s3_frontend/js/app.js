@@ -388,6 +388,7 @@ async function generateSeatMap(roomId) {
     const room = ROOMS[roomId];
     const container = document.getElementById('seatMapContainer');
     selectedSeats = [];
+    selectedSeatPrices = {}; // Thêm biến lưu giá từng ghế
     totalPrice = 0;
     updateBookingFooter();
 
