@@ -1070,10 +1070,21 @@ async function verifyRegOTP() {
 }
 
 function proceedAfterRegister() {
-    hideAllPaymentSteps();
-    document.getElementById('payment-step-otp').style.display = 'block';
-    if (totalPrice > 0) document.getElementById('paymentTotalDisplay').textContent = totalPrice.toLocaleString('vi-VN') + 'đ';
-    setTimeout(() => { const inp = document.querySelectorAll('#otpInputs input'); if (inp[0]) inp[0].focus(); }, 200);
+    const email = document.getElementById('reg-modal-email').value.trim();
+    const pass = document.getElementById('reg-modal-pass').value;
+    const loginIdInput = document.getElementById('login-id');
+    const loginPassInput = document.getElementById('login-pass');
+    if (loginIdInput && loginPassInput && email && pass) {
+        loginIdInput.value = email;
+        loginPassInput.value = pass;
+        handleLogin();
+    } else {
+        hideAllPaymentSteps();
+        document.getElementById('payment-step-otp').style.display = 'block';
+        if (totalPrice > 0) document.getElementById('paymentTotalDisplay').textContent = totalPrice.toLocaleString('vi-VN') + 'Ä‘';
+        setTimeout(() => { const inp = document.querySelectorAll('#otpInputs input'); if (inp[0]) inp[0].focus(); }, 200);
+    }
+}, 200);
 }
 
 function otpAutoNext(el) {

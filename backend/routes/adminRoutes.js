@@ -218,7 +218,7 @@ router.delete('/phim/xoa/:id', async (req, res) => {
 
     // Lấy tất cả vé đã bán của phim này (kèm email và giá)
     const veResult = await pool.query(`
-      SELECT V.ID_Ve, V.GiaVe, V.ID_KhachHang, KH.Email, KH.HoTen
+      SELECT V.ID_Ve, V.GiaVe, V.ID_KhachHang, KH.Email, KH.HoTen, V.ViTriHang, V.ViTriCot
       FROM VE V
       JOIN SUATCHIEU SC ON V.ID_SuatChieu = SC.ID_SuatChieu
       JOIN KHACHHANG KH ON V.ID_KhachHang = KH.ID_KhachHang
@@ -227,20 +227,34 @@ router.delete('/phim/xoa/:id', async (req, res) => {
 
     await pool.query('BEGIN');
 
-    // Hoàn tiền TongChiTieu và gửi email cho từng khách
-    for (const ve of veResult.rows) {
-      // Cộng lại TongChiTieu
-      await pool.query('UPDATE KHACHHANG SET TongChiTieu = TongChiTieu - $1 WHERE ID_KhachHang = $2', [ve.giave, ve.id_khachhang]);
+    // Gom vé theo khách hàng để hoàn tiền và gửi 1 email duy nhất
+    const refundsByUser = {};
+    for (const row of veResult.rows) {
+      if (!refundsByUser[row.id_khachhang]) {
+        refundsByUser[row.id_khachhang] = {
+          email: row.email,
+          hoten: row.hoten,
+          totalAmount: 0,
+          seats: []
+        };
+      }
+      refundsByUser[row.id_khachhang].totalAmount += Number(row.giave);
+      refundsByUser[row.id_khachhang].seats.push(`${row.vitrihang.trim()}${row.vitricot}`);
+    }
 
-      // Gửi email thông báo hoàn tiền qua SES
+    for (const id_kh in refundsByUser) {
+      const user = refundsByUser[id_kh];
+      await pool.query('UPDATE KHACHHANG SET TongChiTieu = TongChiTieu - $1 WHERE ID_KhachHang = $2', [user.totalAmount, id_kh]);
+
       try {
         const emailParams = {
-          Destination: { ToAddresses: [ve.email] },
+          Destination: { ToAddresses: [user.email] },
           Message: {
             Body: { Text: { Data:
-              `Kính gửi ${ve.hoten},\n\n` +
+              `Kính gửi ${user.hoten},\n\n` +
               `Chúng tôi xin thông báo rằng phim "${tenPhim}" đã bị hủy khỏi lịch chiếu.\n` +
-              `Vé của bạn đã được hoàn tiền ${Number(ve.giave).toLocaleString('vi-VN')} VNĐ vào tài khoản.\n\n` +
+              `Vé của bạn cho các ghế: ${user.seats.join(', ')} đã bị hủy.\n` +
+              `Tổng số tiền được hoàn lại là ${user.totalAmount.toLocaleString('vi-VN')} VNĐ vào tài khoản.\n\n` +
               `Chúng tôi xin lỗi vì sự bất tiện này.\n` +
               `Trân trọng,\nHCMUT Cinema`
             }},
@@ -249,9 +263,9 @@ router.delete('/phim/xoa/:id', async (req, res) => {
           Source: 'huyphanthanh2.0@gmail.com',
         };
         await sesClient.send(new SendEmailCommand(emailParams));
+        console.log(`[SES] Đã gửi email hoàn tiền phim cho ${user.email}`);
       } catch (emailErr) {
-        console.error('[SES] Gửi email thất bại cho', ve.email, emailErr.message);
-        // Không throw - vẫn tiếp tục xóa dù email lỗi
+        console.error('[SES] Gửi email hoàn tiền phim thất bại cho', user.email, emailErr.message);
       }
     }
 
@@ -302,9 +316,76 @@ router.get('/showtimes', async (req, res) => {
 router.delete('/showtimes/xoa/:id', async (req, res) => {
   const id = req.params.id;
   try {
+    // Lấy thông tin suất chiếu và phim
+    const scInfo = await pool.query(`
+      SELECT SC.ID_SuatChieu, P.TenPhim 
+      FROM SUATCHIEU SC 
+      JOIN PHIM P ON SC.ID_Phim = P.ID_Phim 
+      WHERE SC.ID_SuatChieu = $1
+    `, [id]);
+    if (scInfo.rows.length === 0) return res.json({ success: false, message: 'Không tìm thấy suất chiếu' });
+    const tenPhim = scInfo.rows[0].tenphim;
+
+    // Lấy tất cả vé đã bán của suất chiếu này
+    const veResult = await pool.query(`
+      SELECT V.ID_Ve, V.GiaVe, V.ID_KhachHang, KH.Email, KH.HoTen, V.ViTriHang, V.ViTriCot
+      FROM VE V
+      JOIN KHACHHANG KH ON V.ID_KhachHang = KH.ID_KhachHang
+      WHERE V.ID_SuatChieu = $1
+    `, [id]);
+
+    await pool.query('BEGIN');
+
+    const refundsByUser = {};
+    for (const row of veResult.rows) {
+      if (!refundsByUser[row.id_khachhang]) {
+        refundsByUser[row.id_khachhang] = {
+          email: row.email,
+          hoten: row.hoten,
+          totalAmount: 0,
+          seats: []
+        };
+      }
+      refundsByUser[row.id_khachhang].totalAmount += Number(row.giave);
+      refundsByUser[row.id_khachhang].seats.push(`${row.vitrihang.trim()}${row.vitricot}`);
+    }
+
+    for (const id_kh in refundsByUser) {
+      const user = refundsByUser[id_kh];
+      await pool.query('UPDATE KHACHHANG SET TongChiTieu = TongChiTieu - $1 WHERE ID_KhachHang = $2', [user.totalAmount, id_kh]);
+      
+      try {
+        const emailParams = {
+          Destination: { ToAddresses: [user.email] },
+          Message: {
+            Body: { Text: { Data:
+              `Kính gửi ${user.hoten},\n\n` +
+              `Chúng tôi xin thông báo rằng suất chiếu phim "${tenPhim}" đã bị hủy.\n` +
+              `Vé của bạn cho các ghế: ${user.seats.join(', ')} đã bị hủy.\n` +
+              `Tổng số tiền được hoàn lại là ${user.totalAmount.toLocaleString('vi-VN')} VNĐ vào tài khoản.\n\n` +
+              `Chúng tôi xin lỗi vì sự bất tiện này.\n` +
+              `Trân trọng,\nHCMUT Cinema`
+            }},
+            Subject: { Data: `[HCMUT Cinema] Thông báo hủy suất chiếu & Hoàn tiền: ${tenPhim}` },
+          },
+          Source: 'huyphanthanh2.0@gmail.com',
+        };
+        await sesClient.send(new SendEmailCommand(emailParams));
+        console.log(`[SES] Đã gửi email hoàn tiền suất chiếu cho ${user.email}`);
+      } catch (emailErr) {
+        console.error('[SES] Gửi email hoàn tiền suất chiếu thất bại cho', user.email, emailErr.message);
+      }
+    }
+
+    // Xóa TRANG_THAI_GHE, VE, SUATCHIEU
+    await pool.query('DELETE FROM TRANG_THAI_GHE WHERE ID_SuatChieu = $1', [id]);
+    await pool.query('DELETE FROM VE WHERE ID_SuatChieu = $1', [id]);
     await pool.query('DELETE FROM SUATCHIEU WHERE ID_SuatChieu = $1', [id]);
-    res.json({ success: true, message: "Xóa suất chiếu thành công" });
+
+    await pool.query('COMMIT');
+    res.json({ success: true, message: `Xóa suất chiếu thành công. Đã hoàn tiền cho ${veResult.rows.length} khách hàng.` });
   } catch(err) {
+    await pool.query('ROLLBACK');
     console.error(err);
     res.json({ success: false, message: "Không thể xóa suất chiếu" });
   }
