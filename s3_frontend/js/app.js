@@ -270,6 +270,7 @@ function executeBookingRouting(movieId, showtimeId) {
 // SEAT MAP GENERATION
 // ============================================
 let selectedSeats = [];
+let selectedSeatPrices = {};
 let totalPrice = 0;
 
 // ============================================
@@ -392,7 +393,7 @@ async function generateSeatMap(roomId) {
     const room = ROOMS[roomId];
     const container = document.getElementById('seatMapContainer');
     selectedSeats = [];
-    selectedSeatPrices = {}; // Thêm biến lưu giá từng ghế
+    selectedSeatPrices = {};
     totalPrice = 0;
     updateBookingFooter();
 
@@ -508,6 +509,7 @@ async function toggleSeat(el, seatId, price) {
             });
             el.classList.remove('selected');
             selectedSeats = selectedSeats.filter(s => s !== seatId);
+            delete selectedSeatPrices[seatId];
             totalPrice -= price;
         } catch (e) { console.error(e); }
     } else {
@@ -526,6 +528,7 @@ async function toggleSeat(el, seatId, price) {
             if (data.success) {
                 el.classList.add('selected');
                 selectedSeats.push(seatId);
+                selectedSeatPrices[seatId] = price;
                 totalPrice += price;
             } else {
                 alert(data.message || 'Ghế đã bị chọn bởi người khác!');
@@ -586,6 +589,7 @@ function confirmCancelBooking() {
     if (confirm("Bạn có chắc chắn muốn hủy đặt vé và quay lại trang chủ không?")) {
         if (countdownInterval) clearInterval(countdownInterval);
         selectedSeats = [];
+        selectedSeatPrices = {};
         totalPrice = 0;
         const seatContainer = document.getElementById('selectedSeatsDisplay');
         if (seatContainer) seatContainer.textContent = '--';
@@ -619,6 +623,7 @@ async function handleTimeoutReturn() {
     }
 
     selectedSeats = [];
+    selectedSeatPrices = {};
     totalPrice = 0;
     const seatContainer = document.getElementById('selectedSeatsDisplay');
     if (seatContainer) seatContainer.textContent = '--';
@@ -1095,7 +1100,7 @@ async function verifyOTP() {
             const res = await fetch('http://54.255.100.246:3000/booking/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_suatchieu: currentShowtimeId, ghe: seat, email: id, matkhau: pass, otp: code })
+                body: JSON.stringify({ id_suatchieu: currentShowtimeId, ghe: seat, email: id, matkhau: pass, otp: code, giaVe: selectedSeatPrices[seat] || 100000 })
             });
             const data = await res.json();
             if (data.success) {
