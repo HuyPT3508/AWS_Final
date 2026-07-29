@@ -1084,7 +1084,6 @@ function proceedAfterRegister() {
         if (totalPrice > 0) document.getElementById('paymentTotalDisplay').textContent = totalPrice.toLocaleString('vi-VN') + 'Ä‘';
         setTimeout(() => { const inp = document.querySelectorAll('#otpInputs input'); if (inp[0]) inp[0].focus(); }, 200);
     }
-}, 200);
 }
 
 function otpAutoNext(el) {
