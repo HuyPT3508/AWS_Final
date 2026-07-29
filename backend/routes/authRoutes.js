@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/db');
 
-// Xử lý Đăng nhập
-router.post('/login', async (req, res) => {
+// Xử lý Đăng nhập (Old)
+router.post('/login-old', async (req, res) => {
     const { HoTen, MatKhau } = req.body;
 
     try {
