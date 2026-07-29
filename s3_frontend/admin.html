@@ -10,35 +10,7 @@
 </head>
 <body>
 
-    <!-- NÚT ĐIỀU KHIỂN DEMO -->
-    <div class="demo-controls">
-        <b class="d-block mb-3 text-center border-bottom pb-2" style="color:var(--brand-color);">ĐIỀU KHIỂN DEMO</b>
-        
-        <small class="text-muted d-block mb-1 fw-bold" style="font-size:10px;">— CHUNG —</small>
-        <button class="btn btn-outline-primary btn-sm" onclick="showView('landing')">1. Chọn Role</button>
 
-        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— KHÁCH HÀNG —</small>
-        <button class="btn btn-outline-primary btn-sm" onclick="showView('auth')">2. Đăng nhập</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="showView('register')">2.1. Đăng ký + OTP</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="showView('home')">3. Trang chủ Phim</button>
-        <button class="btn btn-outline-success btn-sm" onclick="demoShowMovieDetail()">3.1. Popup Chi tiết Phim</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="showView('booking')">4. Đặt Ghế (Cinema 01)</button>
-        <button class="btn btn-outline-danger btn-sm" onclick="demoShowSeatLock()">4★. Demo Khóa Ghế RT</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(3)">4a. Phòng 03 — Premium</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(5)">4b. Phòng 05 — 3D</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoSwitchRoom(7)">4c. IMAX Hall 1</button>
-        <button class="btn btn-outline-warning btn-sm" onclick="demoShowPayment()">4.1. Modal Thanh Toán</button>
-        <button class="btn btn-outline-success btn-sm" onclick="demoShowQR()">4.2. Vé QR Code</button>
-
-        <small class="text-muted d-block mb-1 mt-2 fw-bold" style="font-size:10px;">— ADMIN —</small>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoShowDashboard()">5. Dashboard + Charts</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('lichchieu', 1)">5.1. Quản lý Lịch chiếu</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoShowAddShowtime()">5.2. Modal Thêm Suất</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('phim', 2)">5.3. Quản lý Phim</button>
-        <button class="btn btn-outline-primary btn-sm" onclick="demoShowTab('tienich', 3)">5.4. Tiện ích Nhóm 3</button>
-        <button class="btn btn-outline-success btn-sm" onclick="demoCheckDiemShortcut()">5.4a. Tra cứu Điểm (kết quả)</button>
-        <button class="btn btn-outline-success btn-sm" onclick="demoCheckGheShortcut()">5.4b. Kiểm tra Ghế (kết quả)</button>
-    </div>
 
     <!-- HEADER -->
     <header class="cine-header">
@@ -46,9 +18,7 @@
             <h1 class="brand-logo">HCMUT</h1>
             <nav class="nav-links">
                 <a href="#" class="active">PHIM ĐANG CHIẾU</a>
-                <a href="#">RẠP & GIÁ VÉ</a>
             </nav>
-            <div style="color:white; font-size: 14px;"><i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b>Khách vãng lai</b></div>
         </div>
     </header>
 
@@ -61,7 +31,6 @@
                 <button class="active" onclick="switchAdminTab('dashboard', this)"><i class="fas fa-chart-bar me-1"></i> Dashboard</button>
                 <button onclick="switchAdminTab('lichchieu', this)">Quản Lý Lịch Chiếu</button>
                 <button onclick="switchAdminTab('phim', this)">Quản Lý Phim</button>
-                <button onclick="switchAdminTab('tienich', this)">Tiện Ích Nhóm 3</button>
             </div>
 
             <!-- Tab 0: DASHBOARD -->
@@ -198,38 +167,7 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Tiện ích (Kiểm tra ghế, Check điểm) -->
-            <div id="tab-tienich" class="admin-tab" style="display: none;">
-                <div class="row g-4">
-                    <!-- Tool 1: Check Điểm -->
-                    <div class="col-md-6">
-                        <div class="admin-card h-100">
-                            <h4 style="color: var(--brand-color);" class="fw-bold mb-4"><i class="fas fa-graduation-cap me-2"></i> Tra Cứu Điểm Tích Lũy</h4>
-                            <div class="mb-3">
-                                <label class="text-muted fw-bold mb-2">Mã Số Khách Hàng (ID)</label>
-                                <input type="text" id="inputCheckDiem" class="form-control form-control-lg bg-light" placeholder="Nhập ID..." value="2">
-                            </div>
-                            <button class="btn btn-primary w-100 fw-bold py-2" onclick="demoCheckDiem()"><i class="fas fa-search me-2"></i> TRA CỨU</button>
-                            <div id="resultDiem" class="result-panel mt-3" style="display:none;"></div>
-                        </div>
-                    </div>
 
-                    <!-- Tool 2: Kiểm Tra Chỗ Ngồi -->
-                    <div class="col-md-6">
-                        <div class="admin-card h-100">
-                            <h4 style="color: var(--brand-color);" class="fw-bold mb-4"><i class="fas fa-chair me-2"></i> Kiểm Tra Chỗ Ngồi</h4>
-                            <div class="row g-3 mb-3">
-                                <div class="col-6"><label class="text-muted fw-bold mb-1">Suất Chiếu</label><input type="text" id="inputSuat" class="form-control bg-light" placeholder="ID Suất" value="1"></div>
-                                <div class="col-6"><label class="text-muted fw-bold mb-1">Phòng</label><input type="text" id="inputPhong" class="form-control bg-light" placeholder="ID Phòng" value="1"></div>
-                                <div class="col-6"><label class="text-muted fw-bold mb-1">Hàng (A,B)</label><input type="text" id="inputHang" class="form-control bg-light" value="A"></div>
-                                <div class="col-6"><label class="text-muted fw-bold mb-1">Cột (1,2)</label><input type="text" id="inputCot" class="form-control bg-light" value="1"></div>
-                            </div>
-                            <button class="btn btn-primary w-100 fw-bold py-2" onclick="demoCheckGhe()"><i class="fas fa-check-circle me-2"></i> KIỂM TRA TRẠNG THÁI</button>
-                            <div id="resultGhe" class="result-panel mt-3" style="display:none;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
