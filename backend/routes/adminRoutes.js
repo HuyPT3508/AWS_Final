@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../config/db');
+const { pool, sesClient } = require('../config/db');
+const { SendEmailCommand } = require('@aws-sdk/client-ses');
 
 // 1. Dashboard API
 router.get('/dashboard', async (req, res) => {
@@ -206,17 +207,77 @@ router.put('/phim/capnhat/:id', async (req, res) => {
   }
 });
 
-// 8. Xóa phim
+// 8. Xóa phim (cascade: email hoàn tiền → xóa TTG → VE → SUATCHIEU → PHIM)
 router.delete('/phim/xoa/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    // Lưu ý: Cần xóa các ràng buộc khóa ngoại (Suất chiếu, Vé) trước nếu không có CASCADE,
-    // Ở đây ta giả sử DB đã thiết lập ON DELETE CASCADE cho SUATCHIEU
+    // Lấy tên phim
+    const phimResult = await pool.query('SELECT TenPhim FROM PHIM WHERE ID_Phim = $1', [id]);
+    if (phimResult.rows.length === 0) return res.json({ success: false, message: 'Không tìm thấy phim' });
+    const tenPhim = phimResult.rows[0].tenphim;
+
+    // Lấy tất cả vé đã bán của phim này (kèm email và giá)
+    const veResult = await pool.query(`
+      SELECT V.ID_Ve, V.GiaVe, V.ID_KhachHang, KH.Email, KH.HoTen
+      FROM VE V
+      JOIN SUATCHIEU SC ON V.ID_SuatChieu = SC.ID_SuatChieu
+      JOIN KHACHHANG KH ON V.ID_KhachHang = KH.ID_KhachHang
+      WHERE SC.ID_Phim = $1
+    `, [id]);
+
+    await pool.query('BEGIN');
+
+    // Hoàn tiền TongChiTieu và gửi email cho từng khách
+    for (const ve of veResult.rows) {
+      // Cộng lại TongChiTieu
+      await pool.query('UPDATE KHACHHANG SET TongChiTieu = TongChiTieu - $1 WHERE ID_KhachHang = $2', [ve.giave, ve.id_khachhang]);
+
+      // Gửi email thông báo hoàn tiền qua SES
+      try {
+        const emailParams = {
+          Destination: { ToAddresses: [ve.email] },
+          Message: {
+            Body: { Text: { Data:
+              `Kính gửi ${ve.hoten},\n\n` +
+              `Chúng tôi xin thông báo rằng phim "${tenPhim}" đã bị hủy khỏi lịch chiếu.\n` +
+              `Vé của bạn đã được hoàn tiền ${Number(ve.giave).toLocaleString('vi-VN')} VNĐ vào tài khoản.\n\n` +
+              `Chúng tôi xin lỗi vì sự bất tiện này.\n` +
+              `Trân trọng,\nHCMUT Cinema`
+            }},
+            Subject: { Data: `[HCMUT Cinema] Thông báo hủy phim & Hoàn tiền: ${tenPhim}` },
+          },
+          Source: 'huyphanthanh2.0@gmail.com',
+        };
+        await sesClient.send(new SendEmailCommand(emailParams));
+      } catch (emailErr) {
+        console.error('[SES] Gửi email thất bại cho', ve.email, emailErr.message);
+        // Không throw - vẫn tiếp tục xóa dù email lỗi
+      }
+    }
+
+    // Lấy danh sách suất chiếu của phim
+    const scResult = await pool.query('SELECT ID_SuatChieu FROM SUATCHIEU WHERE ID_Phim = $1', [id]);
+    const scIds = scResult.rows.map(r => r.id_suatchieu);
+
+    if (scIds.length > 0) {
+      const scPlaceholders = scIds.map((_, i) => `$${i + 1}`).join(',');
+      // Xóa TRANG_THAI_GHE trước
+      await pool.query(`DELETE FROM TRANG_THAI_GHE WHERE ID_SuatChieu IN (${scPlaceholders})`, scIds);
+      // Xóa VE
+      await pool.query(`DELETE FROM VE WHERE ID_SuatChieu IN (${scPlaceholders})`, scIds);
+      // Xóa SUATCHIEU
+      await pool.query(`DELETE FROM SUATCHIEU WHERE ID_Phim = $1`, [id]);
+    }
+
+    // Cuối cùng xóa PHIM
     await pool.query('DELETE FROM PHIM WHERE ID_Phim = $1', [id]);
-    res.json({ success: true, message: "Xóa phim thành công" });
+
+    await pool.query('COMMIT');
+    res.json({ success: true, message: `Xóa phim thành công. Đã gửi email hoàn tiền cho ${veResult.rows.length} khách hàng.` });
   } catch(err) {
+    await pool.query('ROLLBACK');
     console.error(err);
-    res.json({ success: false, message: "Không thể xóa phim (có thể do ràng buộc dữ liệu)" });
+    res.json({ success: false, message: 'Không thể xóa phim: ' + err.message });
   }
 });
 // 9. Lấy danh sách suất chiếu

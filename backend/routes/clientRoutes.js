@@ -240,4 +240,64 @@ router.post('/booking/confirm', async (req, res) => {
     }
 });
 
+
+// 7. Lịch sử vé của khách hàng
+router.post('/my-tickets', async (req, res) => {
+  const { email, pass } = req.body;
+  try {
+    // Xác thực user
+    const userResult = await pool.query(
+      'SELECT KH.ID_KhachHang, KH.HoTen, KH.Email, KH.LoaiKhachHang, KH.TongChiTieu FROM TAIKHOAN TK JOIN KHACHHANG KH ON TK.ID_TaiKhoan = KH.ID_TaiKhoan WHERE TK.Email = $1 AND TK.MatKhau = $2',
+      [email, pass]
+    );
+    if (userResult.rows.length === 0) return res.json({ success: false, message: 'Sai thông tin đăng nhập' });
+
+    const kh = userResult.rows[0];
+    const diem = Math.floor(kh.tongchitieu / 100000);
+
+    // Lấy danh sách vé
+    const veResult = await pool.query(`
+      SELECT
+        V.ID_Ve, V.ViTriHang, V.ViTriCot, V.GiaVe, V.MaVeQR, V.ThoiGianDat,
+        P.TenPhim, P.PosterURL,
+        SC.ThoiGianBatDau, SC.DinhDang, SC.NgonNgu,
+        PC.TenPhong
+      FROM VE V
+      JOIN SUATCHIEU SC ON V.ID_SuatChieu = SC.ID_SuatChieu
+      JOIN PHIM P ON SC.ID_Phim = P.ID_Phim
+      JOIN PHONGCHIEU PC ON SC.ID_Phong = PC.ID_Phong
+      WHERE V.ID_KhachHang = $1
+      ORDER BY V.ThoiGianDat DESC
+    `, [kh.id_khachhang]);
+
+    res.json({
+      success: true,
+      user: {
+        name: kh.hoten,
+        email: kh.email,
+        loai: kh.loaikhachhang,
+        tongChiTieu: kh.tongchitieu,
+        diem: diem
+      },
+      tickets: veResult.rows.map(v => ({
+        id: v.id_ve,
+        seat: `${v.vitrihang.trim()}${v.vitricot}`,
+        price: v.giave,
+        qr: v.maveqr,
+        bookedAt: v.thoigiandatformatted || v.thoigiandat,
+        movie: v.tenphim,
+        poster: v.posterurl,
+        showtime: v.thoigianbatdau,
+        format: v.dinhdang,
+        lang: v.ngonngu,
+        room: v.tenphong
+      }))
+    });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Lỗi server' });
+  }
+});
+
 module.exports = router;
+

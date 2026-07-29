@@ -143,6 +143,10 @@ function showView(viewId) {
     if (viewId === 'admin') {
         setTimeout(initDashboardCharts, 100);
     }
+    // Load profile data when entering profile
+    if (viewId === 'profile') {
+        setTimeout(loadAndRenderProfile, 100);
+    }
     window.scrollTo(0, 0);
 }
 
@@ -1571,7 +1575,17 @@ function renderHeroCarousel() {
     if (!carousel) return;
 
     const bannerMovies = MOVIES.filter(m => m.banner && m.banner.trim() !== '');
-    if (bannerMovies.length === 0) return; // Keep hardcoded if DB is empty
+
+    if (bannerMovies.length === 0) {
+        // Không có phim nào → Ẩn carousel, hiện empty-state
+        carousel.innerHTML = `
+            <div style="min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);">
+                <i class="fas fa-film" style="font-size:60px;color:#555;margin-bottom:16px;"></i>
+                <h3 style="color:#aaa;font-weight:700;">Hiện chưa có phim đang chiếu</h3>
+                <p style="color:#666;">Quản trị viên vui lòng thêm phim mới!</p>
+            </div>`;
+        return;
+    }
 
     carousel.innerHTML = bannerMovies.map((m, index) => `
                 <div class="slide ${index === 0 ? 'active' : ''}" style="background: url('${m.banner}') center/cover;">
@@ -1741,6 +1755,11 @@ function handleGlobalLogout() {
     updateHeaderUserStatus();
 }
 
+// Chạy khi khởi động trang
+document.addEventListener('DOMContentLoaded', () => {
+    updateHeaderUserStatus();
+});
+
 function updateHeaderUserStatus() {
     const userStr = sessionStorage.getItem('currentUser');
     const headerDiv = document.getElementById('header-user-status');
@@ -1748,13 +1767,105 @@ function updateHeaderUserStatus() {
 
     if (userStr) {
         const user = JSON.parse(userStr);
-        headerDiv.innerHTML = `<i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b>${user.name}</b> <span style="margin-left:10px; cursor:pointer; color:#ffcccc;" onclick="event.stopPropagation(); handleGlobalLogout();">(Đăng xuất)</span>`;
+        headerDiv.innerHTML = `<i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b style="cursor:pointer;" onclick="event.stopPropagation();showView('profile');">${user.name}</b> <span style="margin-left:10px;cursor:pointer;color:#ffcccc;" onclick="event.stopPropagation();handleGlobalLogout();">(Đăng xuất)</span>`;
     } else {
         headerDiv.innerHTML = `<i class="fas fa-user-circle fs-5 me-2 align-middle"></i> <b>Đăng nhập / Đăng ký</b>`;
     }
 }
 
-// Chạy khi khởi động trang
-document.addEventListener('DOMContentLoaded', () => {
-    updateHeaderUserStatus();
-});
+// Click vào header → nếu đã đăng nhập thì vào profile, không thì mở login
+function handleHeaderUserClick() {
+    const userStr = sessionStorage.getItem('currentUser');
+    if (userStr) {
+        showView('profile');
+    } else {
+        openGlobalLogin();
+    }
+}
+
+// Tải và hiển thị trang profile
+async function loadAndRenderProfile() {
+    const userStr = sessionStorage.getItem('currentUser');
+    if (!userStr) {
+        showView('home');
+        openGlobalLogin();
+        return;
+    }
+    const user = JSON.parse(userStr);
+
+    try {
+        const res = await fetch('http://54.255.100.246:3000/my-tickets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: user.email, pass: user.pass })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            document.getElementById('profile-ticket-list').innerHTML = `<div class="text-danger text-center py-3">${data.message}</div>`;
+            return;
+        }
+
+        // Hiện thông tin user
+        document.getElementById('profile-name').textContent = data.user.name;
+        document.getElementById('profile-email').textContent = data.user.email;
+        document.getElementById('profile-diem').textContent = data.user.diem + ' điểm';
+        document.getElementById('profile-chitieu').textContent = Number(data.user.tongChiTieu).toLocaleString('vi-VN') + ' đ';
+        document.getElementById('profile-loai').textContent = data.user.loai || 'Thường';
+
+        // Hiện danh sách vé
+        const ticketList = document.getElementById('profile-ticket-list');
+        if (data.tickets.length === 0) {
+            ticketList.innerHTML = `<div class="text-center text-muted py-5"><i class="fas fa-ticket-alt fa-3x mb-3 d-block" style="opacity:0.3;"></i><p>Bạn chưa mua vé nào cả.</p></div>`;
+            return;
+        }
+
+        ticketList.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Phim</th>
+                            <th>Suất chiếu</th>
+                            <th>Ghế</th>
+                            <th>Giá vé</th>
+                            <th>Ngày mua</th>
+                            <th class="text-center">Vé QR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.tickets.map(t => {
+                            const st = new Date(t.showtime);
+                            const stStr = `${st.getHours().toString().padStart(2,'0')}:${st.getMinutes().toString().padStart(2,'0')} ${st.getDate().toString().padStart(2,'0')}/${(st.getMonth()+1).toString().padStart(2,'0')}/${st.getFullYear()}`;
+                            const buyDate = t.bookedAt ? new Date(t.bookedAt).toLocaleDateString('vi-VN') : '--';
+                            return `<tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="${t.poster}" alt="" style="width:36px;height:54px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">
+                                        <span class="fw-bold" style="color:var(--brand-color);font-size:13px;">${t.movie}</span>
+                                    </div>
+                                </td>
+                                <td><small>${stStr}<br><span class="text-muted">${t.room} &bull; ${t.format}</span></small></td>
+                                <td><span class="badge bg-primary px-3 py-2 fs-6">${t.seat}</span></td>
+                                <td class="fw-bold">${Number(t.price).toLocaleString('vi-VN')}đ</td>
+                                <td><small class="text-muted">${buyDate}</small></td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="showTicketQR('${t.qr}','${t.movie.replace(/'/g,"\\'")}',' Ghế ${t.seat} &bull; ${stStr}')"><i class="fas fa-qrcode me-1"></i>Xem QR</button>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (err) {
+        console.error(err);
+        document.getElementById('profile-ticket-list').innerHTML = `<div class="text-danger text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>Lỗi kết nối server</div>`;
+    }
+}
+
+// Hiện modal QR vé
+function showTicketQR(qrUrl, movie, detail) {
+    document.getElementById('qr-modal-img').src = qrUrl;
+    document.getElementById('qr-modal-movie').textContent = movie;
+    document.getElementById('qr-modal-detail').innerHTML = detail;
+    new bootstrap.Modal(document.getElementById('ticketQRModal')).show();
+}
