@@ -13,6 +13,7 @@ CREATE TABLE PHIM (
     ThoiLuong INT, 
     DaoDien VARCHAR(100),
     NgonNguHoTro VARCHAR(255) DEFAULT 'Phụ Đề, Lồng Tiếng',
+    DinhDangHoTro VARCHAR(50) DEFAULT '2D',
     TheLoai VARCHAR(100),
     PosterURL TEXT,
     BannerURL TEXT,
