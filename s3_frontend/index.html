@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --brand-color: #ff3366;
-            --brand-gradient: linear-gradient(135deg, #ff3366, #ff7b54);
-            --bg-color: #0b0c10;
-            --surface-color: #1f2833;
+            --brand-color: #034ea2;
+            --brand-gradient: linear-gradient(135deg, #034ea2, #007bff);
+            --bg-color: #f4f7f6;
+            --surface-color: #ffffff;
         }
         body {
             background-color: var(--bg-color);
-            color: white;
+            color: #333333;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             display: flex;
@@ -32,7 +32,7 @@
             height: 40vw;
             background: var(--brand-color);
             filter: blur(100px);
-            opacity: 0.15;
+            opacity: 0.1;
             border-radius: 50%;
             z-index: 0;
             animation: pulse 8s infinite alternate;
@@ -40,12 +40,12 @@
         .bg-glow:nth-child(2) {
             top: -10%;
             right: -10%;
-            background: #ff7b54;
+            background: #007bff;
             animation-delay: -4s;
         }
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.1; }
-            100% { transform: scale(1.2); opacity: 0.2; }
+            0% { transform: scale(1); opacity: 0.05; }
+            100% { transform: scale(1.2); opacity: 0.15; }
         }
 
         .container {
@@ -68,10 +68,10 @@
 
         .subtitle {
             text-align: center;
-            color: #c5c6c7;
+            color: #555555;
             margin-bottom: 3rem;
             font-size: 1.2rem;
-            font-weight: 300;
+            font-weight: 400;
         }
 
         .role-cards {
@@ -82,18 +82,18 @@
         }
 
         .role-card {
-            background: rgba(31, 40, 51, 0.6);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             border-radius: 20px;
             padding: 3rem 2rem;
             width: 350px;
             text-align: center;
             text-decoration: none;
-            color: white;
+            color: #333333;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             position: relative;
             overflow: hidden;
         }
@@ -105,16 +105,16 @@
             left: -100%;
             width: 50%;
             height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
             transform: skewX(-25deg);
             transition: all 0.6s ease;
         }
 
         .role-card:hover {
             transform: translateY(-10px);
-            border-color: rgba(255, 51, 102, 0.3);
-            box-shadow: 0 20px 40px rgba(255, 51, 102, 0.15);
-            color: white;
+            border-color: rgba(3, 78, 162, 0.2);
+            box-shadow: 0 20px 40px rgba(3, 78, 162, 0.12);
+            color: #333333;
         }
 
         .role-card:hover::before {
@@ -125,14 +125,14 @@
             width: 100px;
             height: 100px;
             margin: 0 auto 2rem;
-            background: rgba(11, 12, 16, 0.8);
+            background: #f8f9fa;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2.5rem;
             color: var(--brand-color);
-            border: 2px solid rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
 
@@ -145,12 +145,12 @@
 
         .role-card h3 {
             font-size: 1.8rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 1rem;
         }
 
         .role-card p {
-            color: #8a8d91;
+            color: #666666;
             font-size: 0.95rem;
             line-height: 1.5;
             margin-bottom: 0;
@@ -158,14 +158,14 @@
         }
 
         .role-card:hover p {
-            color: #d1d3d5;
+            color: #444444;
         }
         
         .role-badge {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(255, 51, 102, 0.1);
+            background: rgba(3, 78, 162, 0.1);
             color: var(--brand-color);
             padding: 4px 12px;
             border-radius: 20px;
@@ -173,7 +173,7 @@
             font-weight: bold;
             letter-spacing: 1px;
             text-transform: uppercase;
-            border: 1px solid rgba(255, 51, 102, 0.2);
+            border: 1px solid rgba(3, 78, 162, 0.2);
         }
 
         @media (max-width: 768px) {
@@ -197,6 +197,9 @@
     <div class="bg-glow"></div>
 
     <div class="container">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <img src="./img/logo.png" alt="HCMUT Logo" style="height: 80px; object-fit: contain;">
+        </div>
         <h1 class="brand-title">HCMUT CINEMA</h1>
         <p class="subtitle">Please select your portal to continue</p>
         
